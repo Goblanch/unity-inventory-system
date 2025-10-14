@@ -4,14 +4,14 @@ using System;
 
 namespace GB.Inventory.Domain
 {
-    public sealed class Inventory : IInventory
+    public sealed class InventoryModel : IInventory
     {
         private readonly List<InventorySlot> _slots;
 
         public int Capacity => _slots.Count;
         public IReadOnlyList<IInventorySlot> Slots => _slots;
 
-        public Inventory(int initialCapacity = 3)
+        public InventoryModel(int initialCapacity = 3)
         {
             if (initialCapacity < 0) throw new ArgumentOutOfRangeException(nameof(initialCapacity));
             _slots = new List<InventorySlot>(initialCapacity);

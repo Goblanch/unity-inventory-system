@@ -1,0 +1,21 @@
+{
+    "name": "GB.InventorySystem.Tests",
+    "rootNamespace": "GB.Inventory.Tests",
+    "references": [
+        "GUID:dd5e24d2d8073af4488e3544acf86922",
+        "GUID:22e8c149f3732214ca628739f38b11ea",
+        "GUID:27619889b8ba8c24980f49ee34dbb44a",
+        "GUID:0acc523941302664db1f4e527237feb3"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
