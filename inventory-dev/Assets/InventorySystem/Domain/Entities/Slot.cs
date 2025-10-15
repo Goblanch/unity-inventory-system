@@ -10,16 +10,23 @@ namespace GB.Inventory.Domain
     internal sealed class Slot : ISlot
     {
         public int Index { get; }
+        public string SlotProfileId { get; private set; }
         public IStack Stack => _stack;
         public bool IsEmpty => _stack == null;
 
         private Stack _stack;
 
-        public Slot(int index)
+        public Slot(int index, string slotProfileId)
         {
             if (index < 0) throw new ArgumentOutOfRangeException(nameof(index));
             Index = index;
+            SlotProfileId = string.IsNullOrWhiteSpace(slotProfileId) ? "Default" : slotProfileId;
             _stack = null;
+        }
+
+        public void SetProfile(string slotProfileId)
+        {
+            SlotProfileId = string.IsNullOrWhiteSpace(slotProfileId) ? "Default" : slotProfileId;
         }
 
         public bool TryMergeIn(string definitionId, int amount, IStackingPolicy policy, out int merged, out string reason)

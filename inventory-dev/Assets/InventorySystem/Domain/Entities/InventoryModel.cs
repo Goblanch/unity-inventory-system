@@ -9,28 +9,46 @@ namespace GB.Inventory.Domain
         private readonly List<Slot> _slots;
         private readonly List<ISlot> _slotsView; // para exponer
         private readonly IStackingPolicy _stacking;
+        private readonly ISlotFilterPolicy _filter;
+
+        private readonly string _defaultProfileId;
 
         public int Capacity => _slots.Count;
         public IReadOnlyList<ISlot> Slots => _slotsView;
 
-        public InventoryModel(int initialCapacity, IStackingPolicy stacking)
+        public InventoryModel(int initialCapacity, IStackingPolicy stacking, ISlotFilterPolicy filter, string defaultSlotProfileId = "Default")
         {
             if (initialCapacity < 0) throw new ArgumentOutOfRangeException(nameof(initialCapacity));
             _stacking = stacking ?? throw new ArgumentNullException(nameof(stacking));
+            _filter = filter ?? throw new ArgumentNullException(nameof(filter));
+            _defaultProfileId = string.IsNullOrWhiteSpace(defaultSlotProfileId) ? "Default" : defaultSlotProfileId;
 
             _slots = new List<Slot>(initialCapacity);
             _slotsView = new List<ISlot>(initialCapacity);
 
-            for (int i = 0; i < initialCapacity; i++) AddSlotInternal();
-        }
-        
-        private void AddSlotInternal()
-        {
-            var slot = new Slot(_slots.Count);
-            _slots.Add(slot);
-            _slots.Add(slot);
+            for (int i = 0; i < initialCapacity; i++) AddSlotInternal(_defaultProfileId);
         }
 
+        private void AddSlotInternal(string profileId)
+        {
+            var slot = new Slot(_slots.Count, profileId);
+            _slots.Add(slot);
+            _slots.Add(slot);
+        }
+        
+        #region API PERFILES
+        public bool TrySetSlotProfile(int slotIndex, string slotProfileId, out string reason)
+        {
+            throw new NotImplementedException();
+        }
+
+        public string GetSlotProfileId(int slotIndex)
+        {
+            throw new NotImplementedException();
+        }
+        #endregion
+        
+        #region STACKING API
         public bool TryAdd(string definitionId, int count, out int slotIndex, out string reason)
         {
             slotIndex = -1;
@@ -199,7 +217,7 @@ namespace GB.Inventory.Domain
             {
                 int toAdd = newCapacity - Capacity;
                 for (int i = 0; i < toAdd; i++)
-                    AddSlotInternal();
+                    AddSlotInternal(_defaultProfileId);
 
                 return true;
             }
@@ -231,7 +249,8 @@ namespace GB.Inventory.Domain
             }
 
             return TrySetCapacity(Capacity + delta, out reason);
-        }        
+        }
+        #endregion
     }
 }
 
