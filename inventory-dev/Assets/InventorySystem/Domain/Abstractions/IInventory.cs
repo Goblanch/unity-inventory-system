@@ -5,19 +5,20 @@ namespace GB.Inventory.Domain.Abstractions
     public interface IInventory
     {
         int Capacity { get; }
-        IReadOnlyList<IInventorySlot> Slots { get; }
+        IReadOnlyList<ISlot> Slots { get; }
 
-        bool TryAdd(Item item, out int slotIndex);
-        bool TryRemoveAt(int slotIndex, out Item removed);
+        bool TryAdd(string definitionId, int count, out int slotIndex, out string reason);
+        bool TrySplit(int slotIndex, int count, out int newSlotIndex, out string reason);
+        bool TryMove(int srcSlot, int dstSlot, out string reason);
 
         bool TrySetCapacity(int newCapacity, out string reason);
         bool IncreaseCapacity(int delta, out string reason);
     }
 
-    public interface IInventorySlot
+    public interface ISlot
     {
         int Index { get; }
-        Item Item { get; }
+        IStack Stack { get; }
         bool IsEmpty { get; }
     }
 

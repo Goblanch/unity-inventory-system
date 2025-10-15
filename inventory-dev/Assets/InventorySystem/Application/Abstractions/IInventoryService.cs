@@ -6,10 +6,11 @@ namespace GB.Inventory.Application.Abstractions
     public interface IInventoryService
     {
         int Capacity { get; }
-        IReadOnlyList<Item> SlotsView { get; }
+        IReadOnlyList<IStack> SlotsView { get; }
 
-        bool TryAdd(Item item, out int slotIndex);
-        bool TryRemoveAt(int slotIndex, out Item removed);
+        bool TryAdd(string definitionId, int count, out int slotIndex, out string reason);
+        bool TrySplit(int slotIndex, int count, out int newSlotIndex, out string reason);
+        bool TryMove(int srcSlot, int dstSlot, out string reason);
 
         bool SetCapacity(int newCapacity, out string reason);
         bool IncreaseCapacity(int delta, out string reason);

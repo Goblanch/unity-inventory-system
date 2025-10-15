@@ -7,10 +7,10 @@ using UnityEngine;
 namespace GB.Inventory.Domain
 {
     // ?: Futuro: Contenedores multi-stack?
-    internal sealed class Slot
+    internal sealed class Slot : ISlot
     {
         public int Index { get; }
-        public IStack StackRef => _stack;
+        public IStack Stack => _stack;
         public bool IsEmpty => _stack == null;
 
         private Stack _stack;

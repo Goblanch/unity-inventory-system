@@ -17,13 +17,19 @@ namespace GB.Inventory.Application
         }
 
         public int Capacity => _inventory.Capacity;
-        public IReadOnlyList<Item> SlotsView => _inventory.Slots.Select(s => s.Item).ToList(); // ! KHE
+        public IReadOnlyList<IStack> SlotsView => _inventory.Slots.Select(s => s.IsEmpty ? null : s.Stack).ToList(); // ! KHE
 
-        public bool TryAdd(Item item, out int slotIndex) => _inventory.TryAdd(item, out slotIndex);
-        public bool TryRemoveAt(int slotIndex, out Item removed) => _inventory.TryRemoveAt(slotIndex, out removed);
+        public bool TryAdd(string definitionId, int count, out int slotIndex, out string reason) =>
+            _inventory.TryAdd(definitionId, count, out slotIndex, out reason);
+
+        public bool TrySplit(int slotIndex, int count, out int newSlotIndex, out string reason) =>
+            _inventory.TrySplit(slotIndex, count, out newSlotIndex, out reason);
+
+        public bool TryMove(int srcSlot, int dstSlot, out string reason) =>
+            _inventory.TryMove(srcSlot, dstSlot, out reason);
+
         public bool SetCapacity(int newCapacity, out string reason) => _inventory.TrySetCapacity(newCapacity, out reason);
-        public bool IncreaseCapacity(int delta, out string reason) => _inventory.IncreaseCapacity(delta, out reason);   
-     
+        public bool IncreaseCapacity(int delta, out string reason) => _inventory.IncreaseCapacity(delta, out reason);
     }
 }
 
