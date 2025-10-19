@@ -12,6 +12,11 @@ namespace GB.Inventory.Application.Abstractions
         bool TrySplit(int slotIndex, int count, out int newSlotIndex, out string reason);
         bool TryMove(int srcSlot, int dstSlot, out string reason);
 
+        // Perfiles
+        bool TrySetSlotProfile(int slotIndex, string slotProfileId, out string reason);
+        string GetSlotProfileId(int slotIndex);
+
+        // Capacidad
         bool SetCapacity(int newCapacity, out string reason);
         bool IncreaseCapacity(int delta, out string reason);
     }

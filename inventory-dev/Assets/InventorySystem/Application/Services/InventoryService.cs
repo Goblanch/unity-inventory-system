@@ -28,8 +28,14 @@ namespace GB.Inventory.Application
         public bool TryMove(int srcSlot, int dstSlot, out string reason) =>
             _inventory.TryMove(srcSlot, dstSlot, out reason);
 
+        public bool TrySetSlotProfile(int slotIndex, string slotProfileId, out string reason) =>
+            _inventory.TrySetSlotProfile(slotIndex, slotProfileId, out reason);
+
+        public string GetSlotProfileId(int slotIndex) => _inventory.GetSlotProfileId(slotIndex);
+
         public bool SetCapacity(int newCapacity, out string reason) => _inventory.TrySetCapacity(newCapacity, out reason);
         public bool IncreaseCapacity(int delta, out string reason) => _inventory.IncreaseCapacity(delta, out reason);
+
     }
 }
 
