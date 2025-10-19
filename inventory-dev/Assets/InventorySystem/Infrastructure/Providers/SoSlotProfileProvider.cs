@@ -7,11 +7,11 @@ namespace GB.Inventory.Infrastructure.Providers
     /// <summary>
     /// Traduce ItemDefinition (SO) -> ItemMeta (Dominio)
     /// </summary>
-    public sealed class SlotProfileProvider : ISlotProfileProvider
+    public sealed class SoSlotProfileProvider : ISlotProfileProvider
     {
         private readonly SlotProfileDatabase _db;
 
-        public SlotProfileProvider(SlotProfileDatabase db)
+        public SoSlotProfileProvider(SlotProfileDatabase db)
         {
             _db = db;
         }
