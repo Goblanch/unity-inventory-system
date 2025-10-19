@@ -34,7 +34,7 @@ namespace GB.Inventory.Domain
         {
             var slot = new Slot(_slots.Count, profileId);
             _slots.Add(slot);
-            _slots.Add(slot);
+            _slotsView.Add(slot);
         }
         
         #region API PERFILES
