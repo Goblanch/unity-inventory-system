@@ -1,6 +1,7 @@
 using GB.Inventory.Domain.Abstractions;
 using System.Collections.Generic;
 using System;
+using Codice.Client.BaseCommands.Merge.Xml;
 
 namespace GB.Inventory.Domain
 {
@@ -39,16 +40,26 @@ namespace GB.Inventory.Domain
         #region API PERFILES
         public bool TrySetSlotProfile(int slotIndex, string slotProfileId, out string reason)
         {
-            throw new NotImplementedException();
+            reason = null;
+            if ((uint)slotIndex >= (uint)_slots.Count)
+            {
+                reason = "Slot index fuera de rango";
+                return false;
+            }
+
+            _slots[slotIndex].SetProfile(string.IsNullOrWhiteSpace(slotProfileId) ? "Default" : slotProfileId);
+            return true;
         }
 
         public string GetSlotProfileId(int slotIndex)
         {
-            throw new NotImplementedException();
+            if ((uint)slotIndex >= (uint)_slots.Count) return "Invalid";
+            return _slots[slotIndex].SlotProfileId;
         }
         #endregion
-        
+
         #region STACKING API
+        // ! HAY QUE MODIFICAR COSAS AQUÍ
         public bool TryAdd(string definitionId, int count, out int slotIndex, out string reason)
         {
             slotIndex = -1;
@@ -73,11 +84,15 @@ namespace GB.Inventory.Domain
 
                 if (s.Stack.DefinitionId == definitionId)
                 {
-                    if (s.TryMergeIn(definitionId, count, _stacking, out var merged, out _))
+                    if(_filter.CanAccept(s.SlotProfileId, definitionId, out var maxEff, out _))
                     {
-                        count -= merged;
-                        slotIndex = i;
-                        if (count <= 0) return false;
+                        int canAdd = System.Math.Min(count, System.Math.Max(0, maxEff - s.Stack.Count));
+                        if(canAdd > 0 && s.TryMergeIn(definitionId, canAdd, _stacking, out var merged, out _))
+                        {
+                            count -= merged;
+                            slotIndex = i;
+                            if (count <= 0) return true;
+                        }
                     }
                 }
             }
@@ -88,13 +103,15 @@ namespace GB.Inventory.Domain
                 var s = _slots[i];
                 if (!s.IsEmpty) continue;
 
-                int max = _stacking.GetMaxStack(definitionId);
-                int place = Math.Min(count, max);
-                if (s.TryCreate(definitionId, place))
+                if(_filter.CanAccept(s.SlotProfileId, definitionId, out var maxEff, out string why))
                 {
-                    count -= place;
-                    if (slotIndex < 0) slotIndex = i;
-                    if (count <= 0) return true;
+                    int place = System.Math.Min(count, maxEff);
+                    if(place > 0 && s.TryCreate(definitionId, place))
+                    {
+                        count -= place;
+                        if (slotIndex < 0) slotIndex = i;
+                        if (count <= 0) return true;
+                    }
                 }
             }
 
@@ -105,7 +122,7 @@ namespace GB.Inventory.Domain
                 return false; // Se ha añadido parte pero no cabe todo
             }
 
-            reason = "Inventario lleno";
+            reason = "Inventario lleno o perfiles no compatibles";
             return false; // No cabe nada
         }
 
@@ -121,22 +138,29 @@ namespace GB.Inventory.Domain
 
             var source = _slots[slotIndex];
 
-            if (!source.TrySplit(count, out var chunk, out reason))
-                return false;
+            if (!source.TrySplit(count, out var chunk, out reason)) return false;
 
+            // COlocar en primer slot vacío compatible
             for (int i = 0; i < _slots.Count; i++)
             {
-                if (_slots[i].IsEmpty)
+                var destination = _slots[i];
+                if (!destination.IsEmpty) continue;
+
+                if(_filter.CanAccept(destination.SlotProfileId, chunk.DefinitionId, out var maxEff, out _))
                 {
-                    _slots[i].TryCreate(chunk.DefinitionId, chunk.Count);
-                    newSlotIndex = i;
-                    return true;
+                    int place = System.Math.Min(chunk.Count, maxEff);
+                    if(place == chunk.Count)
+                    {
+                        destination.TryCreate(chunk.DefinitionId, chunk.Count);
+                        newSlotIndex = i;
+                        return true;
+                    }
                 }
             }
 
             // No hay espacio: revertimos split
             source.TryMergeIn(chunk.DefinitionId, chunk.Count, _stacking, out _, out _);
-            reason = "No hay slot libre para el split";
+            reason = "No hay slot compatible para el split";
             return false;
         }
 
@@ -159,11 +183,28 @@ namespace GB.Inventory.Domain
                 return false;
             }
 
+            var def = source.Stack.DefinitionId;
+
+            if(!_filter.CanAccept(destination.SlotProfileId, def, out var maxEff, out var why))
+            {
+                reason = why;
+                return false;
+            }
+
             if (destination.IsEmpty)
             {
                 if (source.TryClear(out var removed) && removed != null)
                 {
-                    destination.TryCreate(removed.DefinitionId, removed.Count);
+                    int place = System.Math.Min(removed.Count, maxEff);
+                    destination.TryCreate(removed.DefinitionId, place);
+                    int leftover = removed.Count - place;
+                    if (leftover > 0)
+                    {
+                        // Devolver lo que sobra al origen
+                        source.TryCreate(removed.DefinitionId, leftover);
+                        reason = "Movimiento parcial por límite de stack del perfil destino";
+                        return false;
+                    }
                     return true;
                 }
 
@@ -171,32 +212,33 @@ namespace GB.Inventory.Domain
                 return false;
             }
 
-            // Si mismo def policy: merge
-            if (destination.Stack.DefinitionId == source.Stack.DefinitionId)
+            // Merge si mismo def
+            if (destination.Stack.DefinitionId == def)
             {
-                if (_stacking.CanMerge(destination.Stack.DefinitionId, destination.Stack.Count, destination.Stack.Count, out var canMerge, out var why))
+                int canAdd = System.Math.Min(source.Stack.Count, System.Math.Max(0, maxEff - destination.Stack.Count));
+                if (canAdd > 0)
                 {
-                    if (canMerge > 0)
-                    {
-                        source.TryTake(canMerge, out var taken, out _);
-                        destination.TryMergeIn(destination.Stack.DefinitionId, taken, _stacking, out _, out _);
-                        if (source.IsEmpty) return true;
-                        reason = "Merge parcial, origen aún tiene remanente";
-                        return false;
-                    }
-
-                    reason = why ?? "No se pudo combinar";
+                    source.TryTake(canAdd, out var taken, out _);
+                    destination.TryMergeIn(def, taken, _stacking, out _, out _);
+                    if (source.IsEmpty) return true;
+                    reason = "Merge parcial, origen aún tiene remanente";
                     return false;
                 }
 
-                reason = why ?? "No se pudo combinar";
+                reason = "Destino no admite más unidades por su maxStack effectivo";
                 return false;
             }
 
-            // Distinto def policy: swap
+            // Distinta definición: swap solo si ambos perfiles aceptan
+            if(!_filter.CanAccept(source.SlotProfileId, destination.Stack.DefinitionId, out _, out why))
+            {
+                reason = "Swap inválido: el origen no acepta el item de destino";
+                return false;
+            }
+
             source.TryClear(out var a);
             destination.TryClear(out var b);
-            if (a != null) destination.TryCreate(a.DefinitionId, a.Count);
+            if (a != null) destination.TryCreate(a.DefinitionId, System.Math.Min(a.Count, maxEff));
             if (b != null) source.TryCreate(b.DefinitionId, b.Count);
             return true;
         }
