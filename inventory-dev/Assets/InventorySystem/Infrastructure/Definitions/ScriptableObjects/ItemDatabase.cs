@@ -12,6 +12,16 @@ namespace GB.Inventory.Infrastructure.Definitions
 
         void OnEnable()
         {
+            RebuildIndex();
+        }
+
+        void OnValidate()
+        {
+            RebuildIndex();
+        }
+
+        public void RebuildIndex()
+        {
             _map.Clear();
             if (items == null) return;
             foreach (var it in items)
