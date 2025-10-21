@@ -19,5 +19,8 @@ namespace GB.Inventory.Application.Abstractions
         // Capacidad
         bool SetCapacity(int newCapacity, out string reason);
         bool IncreaseCapacity(int delta, out string reason);
+
+        // Vaciar Slot
+        bool TryClear(int slotIndex, out string reason);
     }
 }

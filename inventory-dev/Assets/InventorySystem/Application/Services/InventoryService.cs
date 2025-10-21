@@ -36,6 +36,9 @@ namespace GB.Inventory.Application
         public bool SetCapacity(int newCapacity, out string reason) => _inventory.TrySetCapacity(newCapacity, out reason);
         public bool IncreaseCapacity(int delta, out string reason) => _inventory.IncreaseCapacity(delta, out reason);
 
+        public bool TryClear(int slotIndex, out string reason) =>
+            _inventory.TryClear(slotIndex, out reason);
+
     }
 }
 

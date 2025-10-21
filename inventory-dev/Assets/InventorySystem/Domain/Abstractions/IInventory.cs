@@ -19,6 +19,9 @@ namespace GB.Inventory.Domain.Abstractions
         // Capacity
         bool TrySetCapacity(int newCapacity, out string reason);
         bool IncreaseCapacity(int delta, out string reason);
+
+        // Vaciar slots explícitamente
+        bool TryClear(int slotIndex, out string reason);
     }
 
     public interface ISlot

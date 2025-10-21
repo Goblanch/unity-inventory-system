@@ -292,6 +292,31 @@ namespace GB.Inventory.Domain
 
             return TrySetCapacity(Capacity + delta, out reason);
         }
+
+        #endregion
+
+        #region CLEAR SLOT
+        public bool TryClear(int slotIndex, out string reason)
+        {
+            reason = null;
+
+            if ((uint)slotIndex >= (uint)_slots.Count)
+            {
+                reason = "SlotIndex fuera de rango";
+                return false;
+            }
+
+            var slot = _slots[slotIndex];
+            if (slot.IsEmpty)
+            {
+                reason = "El slot ya está vacío";
+                return false;
+            }
+
+            slot.TryClear(out _);
+            return true;
+        }
+
         #endregion
     }
 }
