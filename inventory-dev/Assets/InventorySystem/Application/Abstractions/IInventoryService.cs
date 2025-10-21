@@ -1,4 +1,5 @@
 using GB.Inventory.Domain;
+using GB.Inventory.Domain.Abstractions;
 using System.Collections.Generic;
 
 namespace GB.Inventory.Application.Abstractions
@@ -22,5 +23,8 @@ namespace GB.Inventory.Application.Abstractions
 
         // Vaciar Slot
         bool TryClear(int slotIndex, out string reason);
+
+        // Use slot item
+        bool TryUse(int slotIndex, ITurnContext ctx, out UseResult result, out string reason);
     }
 }

@@ -10,10 +10,12 @@ namespace GB.Inventory.Application
     public sealed class InventoryService : IInventoryService
     {
         private readonly IInventory _inventory;
+        private readonly IEffectRegistry _effects;
 
-        public InventoryService(IInventory inventory)
+        public InventoryService(IInventory inventory, IEffectRegistry effects = null)
         {
             _inventory = inventory ?? throw new ArgumentNullException(nameof(inventory));
+            _effects = effects;
         }
 
         public int Capacity => _inventory.Capacity;
@@ -38,6 +40,55 @@ namespace GB.Inventory.Application
 
         public bool TryClear(int slotIndex, out string reason) =>
             _inventory.TryClear(slotIndex, out reason);
+
+        public bool TryUse(int slotIndex, ITurnContext ctx, out UseResult result, out string reason)
+        {
+            result = default;
+            reason = null;
+
+            if (_effects == null)
+            {
+                reason = "No hay EffectRegistry configurado";
+                return false;
+            }
+
+            var slots = _inventory.Slots;
+            if ((uint)slotIndex >= (uint)slots.Count)
+            {
+                reason = "slotIndex fuera de rango";
+                return false;
+            }
+
+            var slot = slots[slotIndex];
+            if (slot.IsEmpty)
+            {
+                reason = "Slot vacío";
+                return false;
+            }
+
+            var stack = slot.Stack;
+            if (!_effects.TryResolve(stack.DefinitionId, out var effect))
+            {
+                reason = $"No hay efecto para '{stack.DefinitionId}'";
+                return false;
+            }
+
+            var res = effect.Apply(ctx, stack.DefinitionId, null);
+            result = res;
+            if (res.Success && res.ConsumeOne)
+            {
+                if (stack.Count == 1)
+                {
+                    _inventory.TryClear(slotIndex, out _);
+                }
+                else
+                {
+                    if (_inventory.TrySplit(slotIndex, 1, out var tmpSlot, out _)) _inventory.TryClear(tmpSlot, out _);
+                }
+            }
+
+            return res.Success;
+        }
 
     }
 }

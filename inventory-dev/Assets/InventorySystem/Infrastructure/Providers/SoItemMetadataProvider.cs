@@ -28,11 +28,29 @@ namespace GB.Inventory.Infrastructure.Providers
                     Tags = tags
                 };
             }
-            return new ItemMeta {
+            return new ItemMeta
+            {
                 DefinitionId = definitionId,
                 TypeId = "Unknown",
                 Tags = System.Array.Empty<string>()
             };
+        }
+        
+        public bool TryGetEffectKey(string definitionId, out string effectKey, out object payload)
+        {
+            effectKey = null;
+            payload = null;
+            if (_items != null && _items.TryGet(definitionId, out var def) && def != null)
+            {
+                effectKey = string.IsNullOrWhiteSpace(def.EffectKey) ? null : def.EffectKey;
+
+                // Payload simple: devolvemos el texto del JSON si existe
+                if (def.PayloadJson != null) payload = def.PayloadJson.text;
+
+                return true;
+            }
+
+            return true;
         }
     }
 }
