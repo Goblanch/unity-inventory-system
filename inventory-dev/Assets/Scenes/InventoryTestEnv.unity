@@ -403,7 +403,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 661289170}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 62be28b90414ee64187a5039457b3928, type: 3}
   m_Name: 
@@ -425,6 +425,10 @@ MonoBehaviour:
   itemDatabase: {fileID: 11400000, guid: e270a69930a8cfc4ab2672595971c108, type: 2}
   slotProfileDatabase: {fileID: 11400000, guid: 330191f3162059a4e9793656345a883c, type: 2}
   defaultMaxStack: 99
+  enableUsagePhases: 0
+  customEffects:
+  - effectKey: test
+    effectTypeName: GB.Inventory.Infrastructure.Effects.TestEffect
 --- !u!4 &661289173
 Transform:
   m_ObjectHideFlags: 0

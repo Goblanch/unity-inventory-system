@@ -16,3 +16,6 @@ MonoBehaviour:
   type: {fileID: 11400000, guid: 29866dfdb2ff98645b2ca75fbd16c9d4, type: 2}
   tags:
   - Consumable
+  effectKey: test
+  payloadJson: {fileID: 0}
+  allowedPhases: []
