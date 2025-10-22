@@ -11,11 +11,13 @@ namespace GB.Inventory.Application
     {
         private readonly IInventory _inventory;
         private readonly IEffectRegistry _effects;
+        private readonly IUsagePhasePolicy _phasePolicy;
 
-        public InventoryService(IInventory inventory, IEffectRegistry effects = null)
+        public InventoryService(IInventory inventory, IEffectRegistry effects = null, IUsagePhasePolicy phasePolicy = null)
         {
             _inventory = inventory ?? throw new ArgumentNullException(nameof(inventory));
             _effects = effects;
+            _phasePolicy = phasePolicy;
         }
 
         public int Capacity => _inventory.Capacity;
@@ -46,12 +48,6 @@ namespace GB.Inventory.Application
             result = default;
             reason = null;
 
-            if (_effects == null)
-            {
-                reason = "No hay EffectRegistry configurado";
-                return false;
-            }
-
             var slots = _inventory.Slots;
             if ((uint)slotIndex >= (uint)slots.Count)
             {
@@ -66,25 +62,42 @@ namespace GB.Inventory.Application
                 return false;
             }
 
-            var stack = slot.Stack;
-            if (!_effects.TryResolve(stack.DefinitionId, out var effect))
+            if (_effects == null)
             {
-                reason = $"No hay efecto para '{stack.DefinitionId}'";
+                reason = "No hay EffectRegistry configurado";
                 return false;
             }
 
-            var res = effect.Apply(ctx, stack.DefinitionId, null);
+            var defId = slot.Stack.DefinitionId;
+
+            if (_phasePolicy != null)
+            {
+                var phases = _effects.GetAllowedPhases(defId);
+                if (!_phasePolicy.CanUse(defId, phases, ctx, out var whyPhase))
+                {
+                    reason = whyPhase;
+                    result = UseResult.Fail(whyPhase);
+                    return false;
+                }
+            }
+
+            if (!_effects.TryResolve(defId, out var effect))
+            {
+                reason = $"No hay efecto para {defId}";
+                result = UseResult.Fail(reason);
+                return false;
+            }
+
+            _effects.TryGetPayload(defId, out var payload);
+
+            var res = effect.Apply(ctx, defId, payload);
             result = res;
+
             if (res.Success && res.ConsumeOne)
             {
-                if (stack.Count == 1)
-                {
-                    _inventory.TryClear(slotIndex, out _);
-                }
-                else
-                {
-                    if (_inventory.TrySplit(slotIndex, 1, out var tmpSlot, out _)) _inventory.TryClear(tmpSlot, out _);
-                }
+                var stack = slot.Stack;
+                if (stack.Count == 1) _inventory.TryClear(slotIndex, out _);
+                else if (_inventory.TrySplit(slotIndex, 1, out var tmp, out _)) _inventory.TryClear(tmp, out _);
             }
 
             return res.Success;

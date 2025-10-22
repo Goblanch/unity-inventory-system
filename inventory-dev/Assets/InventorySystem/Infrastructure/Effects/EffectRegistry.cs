@@ -1,13 +1,23 @@
 using GB.Inventory.Domain.Abstractions;
 using System.Collections.Generic;
+using Unity.VisualScripting.YamlDotNet.Core.Tokens;
 
 namespace GB.Inventory.Infrastructure.Effects
 {
+    /// <summary>
+    /// Registry que:
+    /// - Registra effectKey --> ItemEffect
+    /// - Resuelve definitionId --> (effectKey, payload, allowedPhases) vía SoItemEffectInfoProvider
+    /// </summary>
     public sealed class EffectRegistry : IEffectRegistry
     {
         private readonly Dictionary<string, IItemEffect> _byEffectKey = new();
-        private readonly Dictionary<string, string> _defToEffectKey = new();
-        private readonly Dictionary<string, object> _defToPayload = new();
+        private readonly Providers.SoItemEffectInfoProvider _info;
+
+        public EffectRegistry(Providers.SoItemEffectInfoProvider infoProvider)
+        {
+            _info = infoProvider;
+        }
 
         public EffectRegistry RegisterEffect(string effectKey, IItemEffect effect)
         {
@@ -18,30 +28,35 @@ namespace GB.Inventory.Infrastructure.Effects
             return this;
         }
 
-        public EffectRegistry RegisterDefinition(string definitionId, string effectKey, object payload = null)
-        {
-            if (!string.IsNullOrWhiteSpace(definitionId))
-            {
-                _defToEffectKey[definitionId] = string.IsNullOrWhiteSpace(effectKey) ? null : effectKey;
-                if (payload != null) _defToPayload[definitionId] = payload;
-            }
-
-            return this;
-        }
-
-        public bool TryResolve(string effectKey, out IItemEffect effect)
+        public bool TryResolve(string key, out IItemEffect effect)
         {
             effect = null;
 
-            if (_defToEffectKey.TryGetValue(effectKey, out var eKey) && !string.IsNullOrWhiteSpace(eKey))
+            // Intentar como definitionId
+            if (_info != null && _info.TryGet(key, out var effectKey, out _, out _))
             {
-                return _byEffectKey.TryGetValue(eKey, out effect);
+                if (!string.IsNullOrWhiteSpace(effectKey))
+                    return _byEffectKey.TryGetValue(effectKey, out effect);
+
+                return false;
             }
 
-            return _byEffectKey.TryGetValue(effectKey, out effect);
+            // Fallback: quizá el key ya es un effect key
+            return _byEffectKey.TryGetValue(key, out effect);
         }
 
-        public bool TryGetPayload(string definitionId, out object payload) =>
-            _defToPayload.TryGetValue(definitionId, out payload);
+        public bool TryGetPayload(string definitionId, out object payload)
+        {
+            payload = null;
+            return _info != null && _info.TryGet(definitionId, out _, out payload, out _);
+        }
+        
+        public string[] GetAllowedPhases(string definitionId)
+        {
+            if (_info != null && _info.TryGet(definitionId, out _, out _, out var phases))
+                return phases ?? System.Array.Empty<string>();
+
+            return System.Array.Empty<string>();
+        }
     }
 }

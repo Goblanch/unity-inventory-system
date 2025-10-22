@@ -6,6 +6,7 @@ using GB.Inventory.Application;
 using GB.Inventory.Application.Abstractions;
 using GB.Inventory.Infrastructure.Definitions;
 using GB.Inventory.Infrastructure.Providers;
+using GB.Inventory.Infrastructure.Effects;
 
 namespace GB.Inventory.Infrastructure.Installers
 {
@@ -25,8 +26,10 @@ namespace GB.Inventory.Infrastructure.Installers
 
         [Header("Policies (defaults)")]
         [SerializeField] private int defaultMaxStack = 99;
+        [Tooltip("Si se desactiva, las fases se ignoran aunque tengan AllowedPhases configurados")]
+        [SerializeField] private bool enableUsagePhases = true;
 
-        // Runtime (public getters para acceder desde otros scripts)
+        // Public API
         public IInventory Inventory { get; private set; }
         public IInventoryService Service { get; private set; }
 
@@ -35,14 +38,21 @@ namespace GB.Inventory.Infrastructure.Installers
             // Providers desde SO
             var itemMetaProvider = new SoItemMetadataProvider(itemDatabase);
             var slotProfileProvider = new SoSlotProfileProvider(slotProfileDatabase);
+            var effecrInfoProvider = new SoItemEffectInfoProvider(itemDatabase);
 
             // Políticas por defecto
             var stacking = new SimpleStackingPolicy(defaultMaxStack);
             var filter = new SimpleSlotFilterPolicy(slotProfileProvider, itemMetaProvider, stacking);
+            IUsagePhasePolicy phasePolicy = enableUsagePhases ? new DefaultUsagePhasePolicy() : null;
 
-            // Modelo + Service
+            // Modelo
             var model = new InventoryModel(initialCapacity, stacking, filter, defaultSlotProfileId);
             Inventory = model;
+
+            // EffectRegistry: registramos aquí los efectos disponibles
+            var registry = new EffectRegistry(effecrInfoProvider).RegisterEffect("test", new TestEffect());
+
+            // Service
             Service = new InventoryService(model);
 
             Debug.Log("[InventoryInstaller] Inventario inicializado");
