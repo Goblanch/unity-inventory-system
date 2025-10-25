@@ -1,0 +1,19 @@
+{
+    "name": "GB.InventorySystem.Samples",
+    "rootNamespace": "",
+    "references": [
+        "GUID:22e8c149f3732214ca628739f38b11ea",
+        "GUID:6631ee52819f44947bf6797b728aa0da",
+        "GUID:dd5e24d2d8073af4488e3544acf86922",
+        "GUID:2bafac87e7f4b9b418d9448d219b01ab"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
