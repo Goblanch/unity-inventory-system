@@ -1,6 +1,7 @@
 using UnityEngine;
 using GB.Inventory.Application.Abstractions;
 using GB.Inventory.Infrastructure.Installers;
+using GB.Inventory.Samples.UI;
 
 namespace GB.Inventory.Samples
 {
@@ -8,41 +9,31 @@ namespace GB.Inventory.Samples
     {
         [Header("Wiring")]
         [SerializeField] private InventoryInstaller inventoryInstaller;
-        [SerializeField] private GB.Inventory.Samples.UI.InventoryHUDPresenter hudPresenter;
+        [SerializeField] private InventoryHUDPresenter hudPresenter;
+        [SerializeField] private DebugPanel debugPanel;
 
         void Start()
         {
-            if (inventoryInstaller == null)
-            {
+            if (!inventoryInstaller)
                 inventoryInstaller = FindFirstObjectByType<InventoryInstaller>();
-            }
 
-            if (inventoryInstaller == null)
+            if (!hudPresenter)
+                hudPresenter = FindFirstObjectByType<InventoryHUDPresenter>();
+
+            if (!inventoryInstaller || inventoryInstaller.Service == null)
             {
-                Debug.LogError("[SampleSceneInstaller] No se encontró InventoryInstaller en escena");
+                Debug.LogError("[SampleSceneInstaller] InventoryInstaller / Service no disponible");
                 return;
             }
-
-            var svc = inventoryInstaller.Service;
-            if (svc == null)
+            if (!hudPresenter)
             {
-                Debug.LogError("[SampleSceneInstaller] InventoryInstaller.Service es null");
+                Debug.LogError("[SampleSceneInstaller] HUDPresenter no asignado");
                 return;
             }
+            hudPresenter.Bind(inventoryInstaller.Service);
 
-            if (hudPresenter == null)
-            {
-                hudPresenter = FindFirstObjectByType<GB.Inventory.Samples.UI.InventoryHUDPresenter>();
-            }
-            
-            if(hudPresenter != null)
-            {
-                hudPresenter.Bind(svc);
-            }
-            else
-            {
-                Debug.LogWarning("[SampleSceneInstaller] No hay HUDPresenter asignado");
-            }
+            if (!debugPanel) debugPanel = FindFirstObjectByType<DebugPanel>();
+            if (debugPanel) debugPanel.Bind(inventoryInstaller.Service, hudPresenter);
         }
     }
 }
