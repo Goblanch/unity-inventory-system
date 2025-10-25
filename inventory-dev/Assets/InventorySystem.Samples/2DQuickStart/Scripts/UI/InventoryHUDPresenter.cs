@@ -15,6 +15,9 @@ namespace GB.Inventory.Samples.UI
         private IInventoryService _svc;
         private readonly List<SlotView> _views = new List<SlotView>();
 
+        public int SlotCount => _views.Count;
+        public SlotView GetSlotView(int index) => (index >= 0 && index < _views.Count) ? _views[index] : null;
+
         public void Bind(IInventoryService service)
         {
             _svc = service;
@@ -39,6 +42,10 @@ namespace GB.Inventory.Samples.UI
                 var v = Instantiate(slotPrefab, slotsGrid);
                 v.SetIndex(i);
                 v.RenderEmpty();
+
+                if (!v.gameObject.TryGetComponent<SlotInputRouter>(out _))
+                    v.gameObject.AddComponent<SlotInputRouter>();
+
                 _views.Add(v);
             }
         }
