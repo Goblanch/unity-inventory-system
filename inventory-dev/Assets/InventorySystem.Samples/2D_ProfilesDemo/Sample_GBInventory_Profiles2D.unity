@@ -3732,6 +3732,22 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 6933504483903888537}
     m_Modifications:
+    - target: {fileID: 6173736704397030591, guid: 0fff870033f9cd546927af8223de69cb, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6173736704397030591, guid: 0fff870033f9cd546927af8223de69cb, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6173736704397030591, guid: 0fff870033f9cd546927af8223de69cb, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6173736704397030591, guid: 0fff870033f9cd546927af8223de69cb, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6578242403756550592, guid: 0fff870033f9cd546927af8223de69cb, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -3815,6 +3831,22 @@ PrefabInstance:
     - target: {fileID: 6875448910515845539, guid: 0fff870033f9cd546927af8223de69cb, type: 3}
       propertyPath: m_Name
       value: InventoryView
+      objectReference: {fileID: 0}
+    - target: {fileID: 8517470061910601412, guid: 0fff870033f9cd546927af8223de69cb, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8517470061910601412, guid: 0fff870033f9cd546927af8223de69cb, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8517470061910601412, guid: 0fff870033f9cd546927af8223de69cb, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8517470061910601412, guid: 0fff870033f9cd546927af8223de69cb, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

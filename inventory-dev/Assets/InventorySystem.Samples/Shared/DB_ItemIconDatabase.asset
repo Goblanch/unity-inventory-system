@@ -19,3 +19,11 @@ MonoBehaviour:
     icon: {fileID: 10901, guid: 0000000000000000f000000000000000, type: 0}
   - definitionId: wood
     icon: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
+  - definitionId: picaxe
+    icon: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
+  - definitionId: steel
+    icon: {fileID: 10901, guid: 0000000000000000f000000000000000, type: 0}
+  - definitionId: stone
+    icon: {fileID: 10915, guid: 0000000000000000f000000000000000, type: 0}
+  - definitionId: sword
+    icon: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
