@@ -1,8 +1,5 @@
 using System;
-using Codice.Client.BaseCommands.Merge.Xml;
 using GB.Inventory.Domain.Abstractions;
-using PlasticPipe.PlasticProtocol.Messages;
-using UnityEngine;
 
 namespace GB.Inventory.Domain
 {
@@ -34,7 +31,11 @@ namespace GB.Inventory.Domain
             reason = null;
             merged = 0;
 
-            if (IsEmpty) return false;
+            if (IsEmpty)
+            {
+                reason = $"Slot {Index} vacío";
+                return false;
+            }
 
             if (_stack.DefinitionId != definitionId)
             {
@@ -42,17 +43,14 @@ namespace GB.Inventory.Domain
                 return false;
             }
 
-            if (!policy.CanMerge(definitionId, _stack.Count, amount, out var canMerge, out reason))
-                return false;
-
-            if (canMerge <= 0)
+            if (amount <= 0)
             {
-                if (reason == null) reason = "No se puede añadir al stack existente";
+                reason = "Cantidad a mergear debe ser > 0";
                 return false;
             }
 
-            _stack.Add(canMerge);
-            merged = canMerge;
+            _stack.Add(amount);
+            merged = amount;
             return true;
         }
 

@@ -1,3 +1,4 @@
+using System;
 using GB.Inventory.Domain;
 using GB.Inventory.Domain.Abstractions;
 using GB.Inventory.Infrastructure.Definitions;
@@ -13,36 +14,39 @@ namespace GB.Inventory.Infrastructure.Providers
 
         public SoSlotProfileProvider(SlotProfileDatabase db)
         {
-            _db = db;
+            _db = db ?? throw new ArgumentNullException(nameof(db));
         }
 
-        public SlotProfile Get(string slotProfileId)
+        public bool TryGet(string slotProfileId, out SlotProfile profile)
         {
-            if (_db != null && _db.TryGet(slotProfileId, out var def) && def != null)
+            profile = default(SlotProfile);
+
+            if (string.IsNullOrWhiteSpace(slotProfileId)) return false;
+
+            SlotProfileDefinition def;
+            if (_db.TryGet(slotProfileId, out def) && def != null)
             {
-                return new SlotProfile
+                profile = new SlotProfile
                 {
                     Id = def.ProfileId,
-                    AllowedTypes = def.AllowedTypes,
-                    RequiredTags = def.RequiredTags,
-                    BannedTags = def.BannedTags,
+                    AllowedTypes = def.AllowedTypes ?? Array.Empty<string>(),
+                    RequiredTags = def.RequiredTags ?? Array.Empty<string>(),
+                    BannedTags = def.BannedTags ?? Array.Empty<string>(),
                     HasStackableOverride = def.HasStackableOverride,
                     StackableOverride = def.StackableOverride,
                     MaxStackOverride = def.MaxStackOverride
                 };
+                return true;
             }
-            
-            // Fallback "Default": sin restricciones.
-            return new SlotProfile
-            {
-                Id = slotProfileId ?? "Default",
-                AllowedTypes = System.Array.Empty<string>(),
-                RequiredTags = System.Array.Empty<string>(),
-                BannedTags = System.Array.Empty<string>(),
-                HasStackableOverride = false,
-                StackableOverride = true,
-                MaxStackOverride = 0
-            };
+            return false;
+        }
+
+        // Compatibilidad con código existente que usa Get
+        // Devuelve null si no existe (asumiendo SlotProfile es class)
+        public SlotProfile Get(string slotProfileId)
+        {
+            SlotProfile p;
+            return TryGet(slotProfileId, out p) ? p : null;
         }
     }
 }

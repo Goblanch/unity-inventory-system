@@ -1,3 +1,5 @@
+using System;
+
 namespace GB.Inventory.Domain.Abstractions
 {
     /// <summary>
@@ -7,12 +9,19 @@ namespace GB.Inventory.Domain.Abstractions
     public interface IItemMetadataProvider
     {
         ItemMeta Get(string definitionId);
+
+        bool TryGet(string definitionId, out ItemMeta meta);
     }
     
-    public struct ItemMeta
+    [Serializable]
+    public sealed class ItemMeta
     {
         public string DefinitionId;
         public string TypeId;
         public string[] Tags;
+
+        // Override stacking per item
+        public bool HasStackOverride;
+        public int MaxStack; // valid if HasStackOverride == true;
     }
 }

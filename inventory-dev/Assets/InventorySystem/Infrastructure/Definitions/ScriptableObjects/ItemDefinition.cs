@@ -9,6 +9,10 @@ namespace GB.Inventory.Infrastructure.Definitions
         [SerializeField] private ItemTypeDefinition type;   // referencia al tipo
         [SerializeField] private string[] tags;         // "Consumable", "Tool", "Material"
 
+        [Header("Stacking per item")]
+        [SerializeField] private bool overrideStacking;
+        [Min(1), SerializeField] private int maxStack = 1;
+
         [Header("Effect (optional)")]
         [SerializeField] private string effectKey;
         [SerializeField] private TextAsset payloadJson; // Opcional: datos para el efecto
@@ -20,6 +24,9 @@ namespace GB.Inventory.Infrastructure.Definitions
         public string DefinitionId => definitionId;
         public ItemTypeDefinition Type => type;
         public string[] Tags => tags ?? System.Array.Empty<string>();
+
+        public bool OverrideStacking => overrideStacking;
+        public int MaxStack => maxStack;
 
         public string EffectKey => effectKey;
         public TextAsset PayloadJson => payloadJson;

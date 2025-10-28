@@ -1,6 +1,9 @@
+using System;
+
 namespace GB.Inventory.Domain
 {
-    public struct SlotProfile
+    [Serializable]
+    public sealed class SlotProfile
     {
         public string Id;
 

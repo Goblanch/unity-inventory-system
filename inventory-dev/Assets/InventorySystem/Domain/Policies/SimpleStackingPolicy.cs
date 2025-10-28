@@ -44,5 +44,10 @@ namespace GB.Inventory.Domain.Policies
             canMergeCount = Math.Min(incomingCount, max - existingCount);
             return canMergeCount > 0;
         }
+
+        public int GetMaxPerStack(string definitionId, string typeId)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

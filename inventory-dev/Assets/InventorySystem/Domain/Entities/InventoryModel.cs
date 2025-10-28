@@ -1,7 +1,6 @@
 using GB.Inventory.Domain.Abstractions;
 using System.Collections.Generic;
 using System;
-using Codice.Client.BaseCommands.Merge.Xml;
 
 namespace GB.Inventory.Domain
 {

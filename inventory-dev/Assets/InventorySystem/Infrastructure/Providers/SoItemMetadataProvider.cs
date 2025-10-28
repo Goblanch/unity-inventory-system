@@ -1,3 +1,4 @@
+using System;
 using GB.Inventory.Domain.Abstractions;
 using GB.Inventory.Infrastructure.Definitions;
 
@@ -12,45 +13,62 @@ namespace GB.Inventory.Infrastructure.Providers
 
         public SoItemMetadataProvider(ItemDatabase items)
         {
-            _items = items;
+            _items = items ?? throw new ArgumentNullException(nameof(items));
         }
 
-        public ItemMeta Get(string definitionId)
+        public bool TryGet(string definitionId, out ItemMeta meta)
         {
-            if (_items != null && _items.TryGet(definitionId, out var def) && def != null)
+            meta = null;
+
+            if (string.IsNullOrWhiteSpace(definitionId)) return false;
+
+            ItemDefinition def;
+            if (_items.TryGet(definitionId, out def) && def != null)
             {
                 var typeId = def.Type != null ? def.Type.TypeId : "Unknown";
-                var tags = def.Tags ?? System.Array.Empty<string>();
-                return new ItemMeta
+                var tags = def.Tags ?? Array.Empty<string>();
+
+                meta = new ItemMeta
                 {
                     DefinitionId = def.DefinitionId,
                     TypeId = typeId,
-                    Tags = tags
+                    Tags = tags,
+                    HasStackOverride = def.OverrideStacking,
+                    MaxStack = def.OverrideStacking ? (def.MaxStack > 0 ? def.MaxStack : 1) : 0
                 };
+                return true;
             }
-            return new ItemMeta
-            {
-                DefinitionId = definitionId,
-                TypeId = "Unknown",
-                Tags = System.Array.Empty<string>()
-            };
+
+            return false;
+        }
+
+        // Compatibilidad: algunos sitios pueden seguir usando Get
+        public ItemMeta Get(string definitionId)
+        {
+            ItemMeta meta;
+            return TryGet(definitionId, out meta) ? meta : null;
         }
         
         public bool TryGetEffectKey(string definitionId, out string effectKey, out object payload)
         {
             effectKey = null;
             payload = null;
-            if (_items != null && _items.TryGet(definitionId, out var def) && def != null)
+
+            if (string.IsNullOrWhiteSpace(definitionId)) return false;
+
+            ItemDefinition def;
+            if (_items.TryGet(definitionId, out def) && def != null)
             {
                 effectKey = string.IsNullOrWhiteSpace(def.EffectKey) ? null : def.EffectKey;
 
-                // Payload simple: devolvemos el texto del JSON si existe
-                if (def.PayloadJson != null) payload = def.PayloadJson.text;
+                // Si usas TextAsset para el JSON, devolvemos el texto
+                if (def.PayloadJson != null)
+                    payload = def.PayloadJson.text;
 
                 return true;
             }
 
-            return true;
+            return false;
         }
     }
 }

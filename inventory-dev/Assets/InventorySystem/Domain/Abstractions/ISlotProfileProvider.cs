@@ -6,5 +6,6 @@ namespace GB.Inventory.Domain.Abstractions
     public interface ISlotProfileProvider
     {
         SlotProfile Get(string slotProfileId);
+        bool TryGet(string slotProfileId, out SlotProfile profile);
     }
 }

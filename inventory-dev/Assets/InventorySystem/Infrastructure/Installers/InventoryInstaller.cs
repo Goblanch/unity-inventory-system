@@ -59,9 +59,9 @@ namespace GB.Inventory.Infrastructure.Installers
             var effectInfoProvider = new SoItemEffectInfoProvider(itemDatabase);
 
             // Políticas por defecto
-            var stacking = new SimpleStackingPolicy(defaultMaxStack);
-            var filter = new SimpleSlotFilterPolicy(slotProfileProvider, itemMetaProvider, stacking);
+            var stacking = new PerItemStackingPolicy(itemMetaProvider, defaultMaxStack);
             IUsagePhasePolicy phasePolicy = enableUsagePhases ? new DefaultUsagePhasePolicy() : null;
+            var filter = new SimpleSlotFilterPolicy(slotProfileProvider, itemMetaProvider, stacking);
 
             // Modelo
             var model = new InventoryModel(initialCapacity, stacking, filter, defaultSlotProfileId);
