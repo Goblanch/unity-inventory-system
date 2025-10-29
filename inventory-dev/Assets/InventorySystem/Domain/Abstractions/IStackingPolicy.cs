@@ -1,16 +1,17 @@
 namespace GB.Inventory.Domain.Abstractions
 {
     /// <summary>
-    /// Define las reglas para aplicar stacks (maxStack por definición y si se pueden combinar)
+    /// Resolves the base max-per-stack for a given item, optionally considering its type.
+    /// This value is usually further clamped by the slot profile policy.
     /// </summary>
     public interface IStackingPolicy
     {   
         /// <summary>
-        /// Devuelve el máximo por pila para un ítem (según sus metadatos).
+        /// Returns the base maximum amount allowed in a single stack for a given item.
         /// </summary>
-        /// <param name="definitionId"></param>
-        /// <param name="typeId"></param>
-        /// <returns></returns>
+        /// <param name="definitionId">Item definition ID.</param>
+        /// <param name="typeId">Item type identifier (optional usage depends on the implementation).</param>
+        /// <returns>Base max-per-stack for that item.</returns>
         int GetMaxPerStack(string definitionId, string typeId);
     }
 }

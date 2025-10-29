@@ -13,9 +13,21 @@ namespace GB.Inventory.Domain
 
         private readonly string _defaultProfileId;
 
+        /// <inheritdoc/>
         public int Capacity => _slots.Count;
+
+        /// <inheritdoc/>
         public IReadOnlyList<ISlot> Slots => _slotsView;
 
+        /// <summary>
+        /// Creates a new inventory with the given capacity, policies, and default slot profile.
+        /// </summary>
+        /// <param name="initialCapacity"></param>
+        /// <param name="stacking"></param>
+        /// <param name="filter"></param>
+        /// <param name="defaultSlotProfileId"></param>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        /// <exception cref="ArgumentNullException"></exception>
         public InventoryModel(int initialCapacity, IStackingPolicy stacking, ISlotFilterPolicy filter, string defaultSlotProfileId = "Default")
         {
             if (initialCapacity < 0) throw new ArgumentOutOfRangeException(nameof(initialCapacity));
@@ -35,8 +47,9 @@ namespace GB.Inventory.Domain
             _slots.Add(slot);
             _slotsView.Add(slot);
         }
-        
+
         #region API PERFILES
+        /// <inheritdoc/>
         public bool TrySetSlotProfile(int slotIndex, string slotProfileId, out string reason)
         {
             reason = null;
@@ -50,6 +63,7 @@ namespace GB.Inventory.Domain
             return true;
         }
 
+        /// <inheritdoc/>
         public string GetSlotProfileId(int slotIndex)
         {
             if ((uint)slotIndex >= (uint)_slots.Count) return "Invalid";
@@ -58,7 +72,8 @@ namespace GB.Inventory.Domain
         #endregion
 
         #region STACKING API
-        // ! HAY QUE MODIFICAR COSAS AQUÍ
+
+        /// <inheritdoc/>
         public bool TryAdd(string definitionId, int count, out int slotIndex, out string reason)
         {
             slotIndex = -1;
@@ -83,10 +98,10 @@ namespace GB.Inventory.Domain
 
                 if (s.Stack.DefinitionId == definitionId)
                 {
-                    if(_filter.CanAccept(s.SlotProfileId, definitionId, out var maxEff, out _))
+                    if (_filter.CanAccept(s.SlotProfileId, definitionId, out var maxEff, out _))
                     {
                         int canAdd = System.Math.Min(count, System.Math.Max(0, maxEff - s.Stack.Count));
-                        if(canAdd > 0 && s.TryMergeIn(definitionId, canAdd, _stacking, out var merged, out _))
+                        if (canAdd > 0 && s.TryMergeIn(definitionId, canAdd, _stacking, out var merged, out _))
                         {
                             count -= merged;
                             slotIndex = i;
@@ -102,10 +117,10 @@ namespace GB.Inventory.Domain
                 var s = _slots[i];
                 if (!s.IsEmpty) continue;
 
-                if(_filter.CanAccept(s.SlotProfileId, definitionId, out var maxEff, out string why))
+                if (_filter.CanAccept(s.SlotProfileId, definitionId, out var maxEff, out string why))
                 {
                     int place = System.Math.Min(count, maxEff);
-                    if(place > 0 && s.TryCreate(definitionId, place))
+                    if (place > 0 && s.TryCreate(definitionId, place))
                     {
                         count -= place;
                         if (slotIndex < 0) slotIndex = i;
@@ -125,6 +140,7 @@ namespace GB.Inventory.Domain
             return false; // No cabe nada
         }
 
+        /// <inheritdoc/>
         public bool TrySplit(int slotIndex, int count, out int newSlotIndex, out string reason)
         {
             newSlotIndex = -1;
@@ -145,10 +161,10 @@ namespace GB.Inventory.Domain
                 var destination = _slots[i];
                 if (!destination.IsEmpty) continue;
 
-                if(_filter.CanAccept(destination.SlotProfileId, chunk.DefinitionId, out var maxEff, out _))
+                if (_filter.CanAccept(destination.SlotProfileId, chunk.DefinitionId, out var maxEff, out _))
                 {
                     int place = System.Math.Min(chunk.Count, maxEff);
-                    if(place == chunk.Count)
+                    if (place == chunk.Count)
                     {
                         destination.TryCreate(chunk.DefinitionId, chunk.Count);
                         newSlotIndex = i;
@@ -163,6 +179,7 @@ namespace GB.Inventory.Domain
             return false;
         }
 
+        /// <inheritdoc/>
         public bool TryMove(int srcSlot, int dstSlot, out string reason)
         {
             reason = null;
@@ -184,7 +201,7 @@ namespace GB.Inventory.Domain
 
             var def = source.Stack.DefinitionId;
 
-            if(!_filter.CanAccept(destination.SlotProfileId, def, out var maxEff, out var why))
+            if (!_filter.CanAccept(destination.SlotProfileId, def, out var maxEff, out var why))
             {
                 reason = why;
                 return false;
@@ -229,7 +246,7 @@ namespace GB.Inventory.Domain
             }
 
             // Distinta definición: swap solo si ambos perfiles aceptan
-            if(!_filter.CanAccept(source.SlotProfileId, destination.Stack.DefinitionId, out _, out why))
+            if (!_filter.CanAccept(source.SlotProfileId, destination.Stack.DefinitionId, out _, out why))
             {
                 reason = "Swap inválido: el origen no acepta el item de destino";
                 return false;
@@ -242,6 +259,7 @@ namespace GB.Inventory.Domain
             return true;
         }
 
+        /// <inheritdoc/>
         public bool TrySetCapacity(int newCapacity, out string reason)
         {
             reason = null;
@@ -254,7 +272,7 @@ namespace GB.Inventory.Domain
 
             if (newCapacity == Capacity) return true;
 
-            if(newCapacity > Capacity)
+            if (newCapacity > Capacity)
             {
                 int toAdd = newCapacity - Capacity;
                 for (int i = 0; i < toAdd; i++)
@@ -280,6 +298,7 @@ namespace GB.Inventory.Domain
             }
         }
 
+        /// <inheritdoc/>
         public bool IncreaseCapacity(int delta, out string reason)
         {
             reason = null;
@@ -295,6 +314,7 @@ namespace GB.Inventory.Domain
         #endregion
 
         #region CLEAR SLOT
+        /// <inheritdoc/>
         public bool TryClear(int slotIndex, out string reason)
         {
             reason = null;

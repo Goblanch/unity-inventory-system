@@ -93,13 +93,19 @@ namespace GB.Inventory.Application.Abstractions
         bool IncreaseCapacity(int delta, out string reason);
 
         /// <summary>
-        /// Attempts to use an item of a slot.
+        /// Attempts to use the item in the given slot by resolving and executing its effect.
+        /// Flow:
+        /// 1) Validates the slot index and emptiness.
+        /// 2) If a usage phase policy is configured, checks whether the item can be used in the current context.
+        /// 3) Resolves the item's effect via the effect registry and retrives its payload (if any).
+        /// 4) Invokes the effect with the provided turn context.
+        /// 5) If the effect succeeds and requests consumption, it removes one unity from the stack (clear or split+clear)
         /// </summary>
-        /// <param name="slotIndex">The index of the slot to use.</param>
-        /// <param name="ctx">Turn context if needed; othewise null</param>
-        /// <param name="result">Result of the operation.</param>
-        /// <param name="reason">Outputs a message if the usage fails.</param>
-        /// <returns>True if the item was used successfully</returns>
+        /// <param name="slotIndex">Slot index containing the item to use.</param>
+        /// <param name="ctx">Turn/use context passed to the effect (game-dependent state)</param>
+        /// <param name="result">Outputs the effect result (success, message, consume flags).</param>
+        /// <param name="reason">Outputs failure reason when the use is not allowed or cannot be executed.</param>
+        /// <returns>True if the effect executed successfully; false otherwise.</returns>
         bool TryUse(int slotIndex, ITurnContext ctx, out UseResult result, out string reason);
     }
 }

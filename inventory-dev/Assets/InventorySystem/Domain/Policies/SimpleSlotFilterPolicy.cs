@@ -6,13 +6,10 @@ using UnityEditor.Build;
 namespace GB.Inventory.Domain.Policies
 {
     /// <summary>
-    /// Política simple: usa SlotProfile + ItemMeta, y combina con stackingPolicy para devolver el maxStack efectivo
-    /// Reglas:
-    ///  - AllowedTypes: si se define, el TypeId del item debe estar incluido.
-    ///  - RequiredTags: si se define, todos deben estar en los tags del item.
-    ///  - BannedTags: ninguno debe estar en los tags del item
-    ///  - StackableOverride: si existe y es false -> maxStack = 1; si true -> respeta a MaxStackOverride o stackingPolicy.
-    ///  - MaxStack efectivo = min(MaxStackOverride > 0 ? override : stackingPolicy.GetMaxStack)
+    /// Slot filter that enforces slot-profile constraints:
+    /// - AllowedTypes, RequiredTags, BannedTags.
+    /// - Optional stackability override (non-stackable or max stack clamp per profile)
+    /// It combines the per item base max (IStackingPolicy) with profile overrides.
     /// </summary>
     public sealed class SimpleSlotFilterPolicy : ISlotFilterPolicy
     {
@@ -20,13 +17,17 @@ namespace GB.Inventory.Domain.Policies
         private readonly IItemMetadataProvider _items;
         private readonly IStackingPolicy _stacking;
 
+        /// <summary>
+        /// Creates the filter combining profile, item metadata and stackable policy.
+        /// </summary>
         public SimpleSlotFilterPolicy(ISlotProfileProvider slotProfileProvider, IItemMetadataProvider itemMetadataProvider, IStackingPolicy stackingPolicy)
         {
-            _profiles   = slotProfileProvider ?? throw new ArgumentNullException(nameof(slotProfileProvider));
-            _items      = itemMetadataProvider ?? throw new ArgumentNullException(nameof(itemMetadataProvider));
-            _stacking   = stackingPolicy ?? throw new ArgumentNullException(nameof(stackingPolicy));
+            _profiles = slotProfileProvider ?? throw new ArgumentNullException(nameof(slotProfileProvider));
+            _items = itemMetadataProvider ?? throw new ArgumentNullException(nameof(itemMetadataProvider));
+            _stacking = stackingPolicy ?? throw new ArgumentNullException(nameof(stackingPolicy));
         }
 
+        ///<inheritdoc/>
         public bool CanAccept(string slotProfileId, string definitionId, out int effectiveMaxStack, out string reason)
         {
             effectiveMaxStack = 0;

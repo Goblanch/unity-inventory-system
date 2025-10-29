@@ -12,7 +12,14 @@ namespace GB.Inventory.Domain.Abstractions
 
         bool TryGet(string definitionId, out ItemMeta meta);
     }
-    
+
+    /// <summary>
+    /// Read-only metadata about an item definition as used by the inventory domain:
+    /// - DefinitionId: unique ID.
+    /// - TypeId: item type.
+    /// - Tags: classification labels.
+    /// - HasStackableOverride/MaxStack: optional per-item stack limit override.
+    /// </summary>
     [Serializable]
     public sealed class ItemMeta
     {
@@ -20,8 +27,11 @@ namespace GB.Inventory.Domain.Abstractions
         public string TypeId;
         public string[] Tags;
 
-        // Override stacking per item
+        /// <summary>
+        /// Indicates wether this item defines its own MaxStack override
+        /// </summary>
         public bool HasStackOverride;
+        /// <summary>Per-item max stack (valid only if <see cref="HasStackOverride"/> is true and &gt; 0).</summary>
         public int MaxStack; // valid if HasStackOverride == true;
     }
 }

@@ -2,9 +2,22 @@ using System.Collections.Generic;
 
 namespace GB.Inventory.Domain.Abstractions
 {
+    /// <summary>
+    /// Low-level inventory contract for domain operations.
+    /// Provides slot-based manipulation (add, move, split, clear), capacity changes,
+    /// and slot profile management. UI/gameplay should normally go through the Application layer.
+    /// </summary>
     public interface IInventory
     {
+        /// <summary>
+        /// Current number of slots in the inventory.
+        /// </summary>
         int Capacity { get; }
+
+        /// <summary>
+        /// Read-only view over slot objects. A slot may be empty (its <c>Stack</c> is null).
+        /// The order is stable: index corresponds to the slot position.
+        /// </summary>
         IReadOnlyList<ISlot> Slots { get; }
 
         /// <summary>
@@ -80,6 +93,10 @@ namespace GB.Inventory.Domain.Abstractions
         bool TryClear(int slotIndex, out string reason);
     }
 
+    /// <summary>
+    /// Represents a single inventory cell. May be empty (Stack == null).
+    /// Holds the slot index and the current slot profile identifier.
+    /// </summary>
     public interface ISlot
     {
         int Index { get; }

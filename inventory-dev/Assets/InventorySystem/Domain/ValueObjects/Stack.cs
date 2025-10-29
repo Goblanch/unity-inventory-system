@@ -3,7 +3,7 @@ using System;
 namespace GB.Inventory.Domain
 {
     /// <summary>
-    /// Stack: conjunto de unidades del mismo item (por definitionId)
+    /// Represent a homogeneous stack of items sharing the same definition ID.
     /// </summary>
     public interface IStack
     {
