@@ -15,6 +15,8 @@ MonoBehaviour:
   definitionId: sword
   type: {fileID: 11400000, guid: 91ed04d24c300b54d968013e49c3a5c5, type: 2}
   tags: []
+  overrideStacking: 1
+  maxStack: 1
   effectKey: 
   payloadJson: {fileID: 0}
   allowedPhases: []
