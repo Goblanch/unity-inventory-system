@@ -1,5 +1,11 @@
 # GB Inventory System
 
+> ⚠️ **Notice:**  
+> This project is currently under active development.  
+> A public beta release is planned before the end of the year.  
+> As the system is not yet finished, cloning the repository at this stage  
+> may lead to **unexpected errors or unstable behavior**.
+
 A **modular, decoupled, and scalable inventory framework** for Unity.
 Designed to be reused across multiple games with minimal coupling and high configurability through **ScriptableObject databases** and **policy-driven architecture**.
 
