@@ -7,6 +7,11 @@ using System;
 
 namespace GB.Inventory.Application
 {
+    /// <summary>
+    /// Concrete implementation of IInventoryService.
+    /// Acts as the public entry point to interact with the inventory model.
+    /// While encapsulating low-level domain logic and policies.
+    /// </summary>
     public sealed class InventoryService : IInventoryService
     {
         private readonly IInventory _inventory;
@@ -21,28 +26,44 @@ namespace GB.Inventory.Application
         }
 
         public int Capacity => _inventory.Capacity;
+
+        /// <summary>
+        /// Exposes a read-only view of all inventory slots.
+        /// Each element may represent a stack or an empty slot.
+        /// </summary>
         public IReadOnlyList<IStack> SlotsView => _inventory.Slots.Select(s => s.IsEmpty ? null : s.Stack).ToList(); // ! KHE
 
+        /// <inheritdoc/>
         public bool TryAdd(string definitionId, int count, out int slotIndex, out string reason) =>
             _inventory.TryAdd(definitionId, count, out slotIndex, out reason);
 
+        /// <inheritdoc/>
         public bool TrySplit(int slotIndex, int count, out int newSlotIndex, out string reason) =>
             _inventory.TrySplit(slotIndex, count, out newSlotIndex, out reason);
 
+        /// <inheritdoc/>
         public bool TryMove(int srcSlot, int dstSlot, out string reason) =>
             _inventory.TryMove(srcSlot, dstSlot, out reason);
 
+        /// <inheritdoc/>
         public bool TrySetSlotProfile(int slotIndex, string slotProfileId, out string reason) =>
             _inventory.TrySetSlotProfile(slotIndex, slotProfileId, out reason);
 
+        /// <inheritdoc/>
         public string GetSlotProfileId(int slotIndex) => _inventory.GetSlotProfileId(slotIndex);
 
+        /// <inheritdoc/>
         public bool SetCapacity(int newCapacity, out string reason) => _inventory.TrySetCapacity(newCapacity, out reason);
+
+        /// <inheritdoc/>
         public bool IncreaseCapacity(int delta, out string reason) => _inventory.IncreaseCapacity(delta, out reason);
 
+        /// <inheritdoc/>
         public bool TryClear(int slotIndex, out string reason) =>
             _inventory.TryClear(slotIndex, out reason);
 
+
+        /// <inheritdoc/>
         public bool TryUse(int slotIndex, ITurnContext ctx, out UseResult result, out string reason)
         {
             result = default;
