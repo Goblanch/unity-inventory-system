@@ -2,7 +2,7 @@
 
 > ⚠️ **Notice:**  
 > This project is currently under active development.  
-> A public beta release is planned before the end of the year.  
+> You can download a **beta** release in the [Releases](https://github.com/Goblanch/GB-inventory-system/releases/tag/v0.1.0-beta.1) section. 
 > As the system is not yet finished, cloning the repository at this stage  
 > may lead to **unexpected errors or unstable behavior**.
 
