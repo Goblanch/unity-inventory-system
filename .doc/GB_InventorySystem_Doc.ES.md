@@ -9,25 +9,25 @@
 
 ## Índice
 
-1. [Introducción](#1-introducción)
-2. [Diccionario de conceptos](#3-diccionario-de-conceptos)
-3. [Arquitectura](#2-arquitectura)
-4. [Cómo implementarlo](#4-cómo-implementarlo)
-    - [Estructura de carpetas sugeridas](#estructura-de-carpetas-sugerida-assets)
-    - [ScriptableObjects a crear](#scriptableobjects-a-crear)
-    - [Instalación por escena (Installer)](#instalación-por-escena-installer)
-5. [API Reference (uso del inventario)](#5-api-reference-uso-del-inventario)
-6. [Cómo conectarlo a una UI](#6-cómo-conectarlo-a-una-ui)
-7. [Cómo aplicar effectos](#7-cómo-aplicar-efectos)
+1. [Introducción](#intro)
+2. [Diccionario de conceptos](#dictionary)
+3. [Arquitectura](#architecture)
+4. [Cómo implementarlo](#implementation)
+    - [Estructura de carpetas sugeridas](#folders)
+    - [Convenciones y organización](#conventions)
+    - [Instalación por escena (Installer)](#instalation)
+5. [API Reference (uso del inventario)](#api-reference)
+6. [Cómo conectarlo a una UI](#connect-ui)
+7. [Cómo aplicar effectos](#effects)
 
 ---
-
+<a id="intro"></a>
 ## 1. Introducción
 
 **GB Inventory System** es un framework de inventario para Unity **desacoplado de la UI**, **polivalente** y **escalable**. Se configura con **ScriptableObjects** (items, perfiles de slot) y se rige por **politicas** (stacking y filtros inyectables). Su objetivo es reutilizarse entre proyectos **sin tocar el núcleo**, adaptándose por configuración.
 
 ---
-
+<a id="dictionary"></a>
 ## 2. Diccionario de conceptos
 
 - **Slot:** celda del inventario. Puede estar vacía (sin `Stack`). Mantiene `Index` y `SlotProfileId`.
@@ -45,7 +45,7 @@
 - **Samples:** escenas de ejemplo para validar integración (2D con perfiles / libres).
 
 ---
-
+<a id="architecture"></a>
 ## 3. Arquitectura
 
 El sistema se organiza en **tres capas**:
@@ -72,9 +72,9 @@ El sistema se organiza en **tres capas**:
 - **Configuración por datos** (SO) orientada a diseñadores y usuarios.
 
 ---
-
+<a id="implementation"></a>
 ## 4. Cómo implementarlo
-
+<a id="folders"></a>
 ### Estructura de carpetas sugerida.
 
 > **Regla de oro**: no metas tus assets de juego (items, perfiles, escenas, iconos) dentro de `Assets/InventorySystem`.
@@ -109,7 +109,7 @@ Assets/
 │
 └─ Tests/                           ← (opc.) tests de tu juego que usan el sistema
 ```
-
+<a id="conventions"></a>
 ### Convenciones y organización
 
 1. `Assets/Data/Inventory/Items/Definitions/`
@@ -177,7 +177,7 @@ Por ejemplo: `ItemType_Resource.asset` con `TypeId = "Resource"`.
 9. `Assets/Game/Inventory/UI/`
 - **Qué:** tu UI real de HUD:
 - **Nota:** esta carpeta es tuya; el sistema no te impone estructura.
-
+<a id="instalation"></a>
 ### Instalación por escena (Installer)
 1. Crea un **GameObject** vacío en tu escena (p.ej. `InventoryRoot`).
 2. Añade el componente **InventoryInstaller** (o el tuyo propio)
@@ -193,7 +193,7 @@ var svc = FindObjectOfType<InventoryInstaller>().Service;
 ```
 
 ---
-
+<a id="api-reference"></a>
 ## 5. API Reference (uso del inventario)
 
 Interfaz principal: IInventoryService (Application)
@@ -243,7 +243,7 @@ bool TryUse(int slotIndex, ITurnContext ctx, out UseResult result, out string re
 - **Mensaje de error:** los métodos devuelven `reason` explicando rechazos o parciales.
 
 ---
-
+<a id="connect-ui"></a>
 ## 6. Cómo conectarlo a una UI
 
 El sistema **no impone** una UI. Flujo típico:
@@ -305,7 +305,7 @@ public class InventoryHUDPresenter : MonoBehaviour
 - `EndDrag`: destruye el ghost y `Refresh()`.
 
 ---
-
+<a id="effects"></a>
 ## 7. Cómo aplicar efectos
 
 **Objetivo**: que `TryUse(slotIndex, ctx, out result, out reason)` ejecute lógica asociada a un item.
