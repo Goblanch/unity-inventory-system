@@ -177,3 +177,176 @@ Por ejemplo: `ItemType_Resource.asset` con `TypeId = "Resource"`.
 9. `Assets/Game/Inventory/UI/`
 - **Qué:** tu UI real de HUD:
 - **Nota:** esta carpeta es tuya; el sistema no te impone estructura.
+
+### Instalación por escena (Installer)
+1. Crea un **GameObject** vacío en tu escena (p.ej. `InventoryRoot`).
+2. Añade el componente **InventoryInstaller** (o el tuyo propio)
+3. Asigna:
+    - `ItemDatabase` (asset)  
+    - `SlotProfileDatabase` (asset)  
+    - `initialCapacity` (p.ej. 3)  
+    - `defaultSlotProfileId` (p.ej. `"Any"` o `"Consumables"`)  
+    - (Opcional) `EffectRegistry` (SO) si usarás `TryUse`
+4. En runtime, accende al servicio:
+```csharp
+var svc = FindObjectOfType<InventoryInstaller>().Service;
+```
+
+---
+
+## 5. API Reference (uso del inventario)
+
+Interfaz principal: IInventoryService (Application)
+Operaciones clave (resumen funcional):
+```csharp
+int Capacity { get; }
+IReadOnlyList<GB.Inventory.Domain.Abstractions.ISlot> SlotsView { get; } 
+// (en algunas versiones: vista de stacks o de slots; usa la que exponga tu build)
+
+bool TryAdd(string definitionId, int count, out int slotIndex, out string reason);
+// Merge-first, luego ubicación en primer slot vacío compatible.
+// Devuelve true si entra TODO; false si entra parcial o no entra.
+
+bool TryMove(int srcSlot, int dstSlot, out string reason);
+// Mismo item → merge hasta el máximo efectivo.
+// Distinto item → swap si ambos perfiles aceptan.
+
+bool TrySplit(int slotIndex, int count, out int newSlotIndex, out string reason);
+// Separa 'count' unidades a un primer slot vacío compatible. Revierta si no hay espacio.
+
+bool TryClear(int slotIndex, out GB.Inventory.Domain.Stack removed); // o out string reason, según versión
+// Vacía un slot (si tiene contenido). 
+
+bool TrySetSlotProfile(int slotIndex, string slotProfileId, out string reason);
+// Cambia el perfil del slot (afecta a operaciones futuras y max efectivo).
+
+string GetSlotProfileId(int slotIndex);
+// Devuelve el perfil actual del slot.
+
+bool SetCapacity(int newCapacity, out string reason);
+bool IncreaseCapacity(int delta, out string reason);
+// Aumenta añade slots vacíos; reducir requiere vaciar los slots fuera del nuevo rango.
+
+bool TryUse(int slotIndex, ITurnContext ctx, out UseResult result, out string reason);
+// (Opcional) Resuelve y ejecuta el efecto del item, valida fase si procede,
+// y consume 1 unidad si el efecto lo indica (result.ConsumeOne).
+```
+**Notas de uso:**
+- **Slots y stack vacíos:**según tu build, un slot vacío puede ser:
+    - `Islot` no-nulo con `Stack == null`, o
+    - `null` en una vista de stacks.
+    Usa checks seguros: `if(slot == null || slot.Stack == null) . . .
+- **Perfiles y stacking efectivos:** `IslotFilterPolicy` combina:
+    - Máximo base por item (`IStackingPolicy.GetMaxPerStack`)
+    - Overrides de perfil (no stackeable o `MaxStackOverride`)
+    - Resultado → **max efectivo** (clamp final)
+- **Mensaje de error:** los métodos devuelven `reason` explicando rechazos o parciales.
+
+---
+
+## 6. Cómo conectarlo a una UI
+
+El sistema **no impone** una UI. Flujo típico:
+1. **HUD Presenter (Monobehaviour)**:
+    - Expone referencias a un `Grid/Transform` y un prefab `SlotView`.
+    - Método `Bind(IInventoryService svc)`: cachea el servicio y construye la rejilla.
+    - Método `Refresh()`: recorre `svc.SlotsView` y:
+        - Si vacío → `SlotView.RenderEmpty()`
+        - Si con stack → `SlotView.Render(defId, count, icon)
+2. **SlotView** (MonoBehaviour del prefab por slot):
+    - Muestra `icon`, `count` (si > 1)
+    - Implementa `IDragHandler/IBeginDrag/IEndDrag` para drag & drop (opcional).
+    - En `OnDrop`, traduce a `TryMove(srcIndex, dstIndex, out reason)`.
+3. **Iconos:**
+    - `ItemIconDatabase` (SO simple) que mapea `DefinitionId → Sprite`.
+
+**Ejemplo de binding mínimo:**
+```csharp
+public class InventoryHUDPresenter : MonoBehaviour
+{
+    [SerializeField] Transform slotsGrid;
+    [SerializeField] SlotView slotPrefab;
+    [SerializeField] ItemIconDatabase iconDb;
+
+    IInventoryService _svc;
+    List<SlotView> _views = new();
+
+    public void Bind(IInventoryService service)
+    {
+        _svc = service;
+        BuildGrid();
+        Refresh();
+    }
+
+    void BuildGrid()
+    {
+        // Instanciar N = _svc.Capacity
+    }
+
+    public void Refresh()
+    {
+        var view = _svc.SlotsView;
+        for (int i = 0; i < _views.Count; i++)
+        {
+            var slot = view[i];
+            if (slot == null || slot.Stack == null)
+                _views[i].RenderEmpty();
+            else
+                _views[i].Render(slot.Stack.DefinitionId, slot.Stack.Count,
+                                 iconDb ? iconDb.GetIcon(slot.Stack.DefinitionId) : null);
+        }
+    }
+}
+```
+
+**Drag & Drop (resumen):**
+- `BeginDrag`: crea un **ghost** (imagen) siguiendo el ratón.
+- `OnDrop` en `SlotView` destino: llama a `_svc.TryMove(srcIndex, dstIndex, out reason)`.
+- `EndDrag`: destruye el ghost y `Refresh()`.
+
+---
+
+## 7. Cómo aplicar efectos
+
+**Objetivo**: que `TryUse(slotIndex, ctx, out result, out reason)` ejecute lógica asociada a un item.
+Se apoya en:
+- **IEffectRegistry**: dado un `DefinitionId`, devuelve un `IEffect` y (opcional) su payload.
+- **IEffect**: interfaz con `Apply(ITurnContext ctx, string definitionId, object payload) -> UseResult`.
+- **IUsagePhasePolicy** (opcional): valida si puede usarse en la fase/turno actual (si tu juego tiene fases).
+- **UseResult**: indica éxito/fracaso y si se debe consumir una unidad (`ConsumeOne`).
+
+Flujo en `InventoryService.TryUse`:
+1. Valida índice y que el slot no esté vacío.
+2. (Opcional) Pregunta al policy de fases si se puede usar ahora.
+3. Resuelve el efecto en el registry (`TryResolve(defId, oyt effect)`).
+4. Obtiene `payload` (si existe) con `TryGetPayload(defId, out payload)`.
+5. Ejecuta `effect.Apply(ctx, defId, payload)`.
+6. Si `Success && ConsumeOne` → consume una unidad (clear o split + clear).
+
+**Cómo configurar:**
+- En **ItemDatabase:** rellena el `EffectKey` para el item que tenga efecto.
+- En tu implementación de `IEffectRegistry`:
+    - Mapea `EffectKey` → clase `IEffect`.
+    - `TryGetPayload(defId, out payload)`: puede devolver el contenido de un JSON (string) o un objeto ya parseado.
+- **Ejemplo** de `payload`: si `ItemDefinition.PayloadJson` tiene un TextAsset JSON:
+```json
+{"amount": 10, "radius": 2}
+```
+Tu efecto puede castear/parsing ese texto y usarlo.
+
+**Ejemplo pseudo-código**:
+```csharp
+public sealed class TestEffect : IEffect
+{
+    public UseResult Apply(ITurnContext ctx, string definitionId, object payload)
+    {
+        // payload puede ser string JSON o un objeto ya construido
+        // Lógica del efecto aquí...
+        return UseResult.Ok(consumeOne: true, message: "Test effect applied");
+    }
+}
+```
+
+**Notas:**
+- Si no quieres efectos → no asignes `EffectRegistry` en tu `InventoryInstaller` y no uses `TryUse`.
+- Si quieres fases, implementa `IUsagePolicy.CanUse(defId, allowedPhases, ctx, out reason)`.
